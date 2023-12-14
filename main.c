@@ -1,55 +1,83 @@
 #include "monty.h"
+stack_t *head = NULL;
 
 /**
- *  main - Main
- *
- *  @argc: Number of args
- *
- *  @argv: Command line args
- *
- *  Return: Void
+ * main - entry point
+ * @argc: arguments count
+ * @argv: list of arguments
+ * Return: always 0
  */
 
 int main(int argc, char *argv[])
 {
-	stack_t *head = NULL;
-	char  *str = NULL, *operator_array[2], *temp;
-	size_t bufsize = 1024, line_count = 0;
-	ssize_t get_line;
-	void (*operator_function)(stack_t **stack, unsigned int line_number);
-
 	if (argc != 2)
-		fprintf(stderr, "USAGE: monty file\n"), exit(EXIT_FAILURE);
-	file = fopen(argv[1], "r");
-	if (file == NULL)
-		fprintf(stderr, "Error: Can't open file %s\n", argv[1]), exit(EXIT_FAILURE);
-	while (1)
 	{
-		get_line = getline(&str, &bufsize, file);
-		if (get_line == -1)
-			break;
-		line_count++;
-		operator_array[0] = strtok(str, "\n ");
-		if (operator_array[0] == NULL)
-			get_nop(&head, line_count);
-		else if (strcmp("push", operator_array[0]) == 0)
-		{
-			temp = strtok(NULL, "\n ");
-
-			get_push(&head, line_count, temp);
-		}
-		else if (operator_array[0] != NULL && operator_array[0][0] != '#')
-		{
-			operator_function = go(operator_array[0], line_count, &head);
-
-			if (operator_function == NULL && line_count == 0)
-			{
-				fprintf(stderr, "L%ld: unknown instruction %s\n",
-					line_count, operator_array[0]), exit(EXIT_FAILURE);
-			}
-		operator_function(&head, line_count);
-		}
+		fprintf(stderr, "USAGE: monty file\n");
+		exit(EXIT_FAILURE);
 	}
-	fclose(file), free(str), get_free(head);
+	open_file(argv[1]);
+	free_nodes();
 	return (0);
+}
+
+/**
+ * create_node - Creates a node.
+ * @n: Number to go inside the node.
+ * Return: Upon sucess a pointer to the node. Otherwise NULL.
+ */
+stack_t *create_node(int n)
+{
+	stack_t *node;
+
+	node = malloc(sizeof(stack_t));
+	if (node == NULL)
+		err(4);
+	node->next = NULL;
+	node->prev = NULL;
+	node->n = n;
+	return (node);
+}
+
+/**
+ * free_nodes - Frees nodes in the stack.
+ */
+void free_nodes(void)
+{
+	stack_t *tmp;
+
+	if (head == NULL)
+		return;
+
+	while (head != NULL)
+	{
+		tmp = head;
+		head = head->next;
+		free(tmp);
+	}
+}
+
+
+/**
+ * add_to_queue - Adds a node to the queue.
+ * @new_node: Pointer to the new node.
+ * @ln: line number of the opcode.
+ */
+void add_to_queue(stack_t **new_node, __attribute__((unused))unsigned int ln)
+{
+	stack_t *tmp;
+
+	if (new_node == NULL || *new_node == NULL)
+		exit(EXIT_FAILURE);
+	if (head == NULL)
+	{
+		head = *new_node;
+		return;
+	}
+	tmp = head;
+	while (tmp->next != NULL)
+		tmp = tmp->next;
+
+	tmp->next = *new_node;
+	(*new_node)->prev = tmp;
+
 }
